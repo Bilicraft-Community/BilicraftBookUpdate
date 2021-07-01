@@ -1,0 +1,9 @@
+name: BilicraftBookUpdate
+version: ${project.version}
+main: com.bilicraft.bilicraftbookupdate.BilicraftBookUpdate
+api-version: 1.17
+description: 用书本形式发送更新通知
+commands:
+  publishbookupdate:
+    description: 发布书本更新通知
+    usage: /publishbookupdate
