@@ -7,3 +7,6 @@ commands:
   publishbookupdate:
     description: 发布书本更新通知
     usage: /publishbookupdate
+  changelog:
+    description: 再次阅读最后一次的更新
+    usage: /changelog

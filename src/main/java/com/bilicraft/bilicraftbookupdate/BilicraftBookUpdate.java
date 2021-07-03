@@ -30,15 +30,15 @@ public final class BilicraftBookUpdate extends JavaPlugin implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void playerJoinedGame(PlayerJoinEvent event) {
-        showUpdate(event.getPlayer());
+        showUpdate(event.getPlayer(),false);
     }
 
-    private void showUpdate(Player player) {
+    private void showUpdate(Player player, boolean force) {
         ItemStack itemStack = getConfig().getItemStack("update");
         if (itemStack == null || itemStack.getType() == Material.AIR) {
             return;
         }
-        if (!getConfig().getBoolean("record." + player.getUniqueId() + ".readed")) {
+        if (!getConfig().getBoolean("record." + player.getUniqueId() + ".readed") || force) {
             getConfig().set("record." + player.getUniqueId() + ".readed", true);
             saveConfig();
             new BukkitRunnable() {
@@ -52,30 +52,38 @@ public final class BilicraftBookUpdate extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission("bilibookupdate.admin")) {
-            sender.sendMessage(ChatColor.RED + "权限不足");
-            return true;
-        }
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatColor.RED + "该命令只能由玩家执行");
             return true;
         }
         Player player = (Player) sender;
-        ItemStack stack = player.getInventory().getItemInMainHand();
-        if (stack.getType() == Material.AIR) {
-            getConfig().set("update", null);
-        } else {
-            if (stack.getType() != Material.WRITTEN_BOOK) {
-                sender.sendMessage(ChatColor.YELLOW + "无效物品，请手持成书来发布更新，或空手取消发布更新");
+        if(label.equalsIgnoreCase("publishbookupdate")){
+            if (!sender.hasPermission("bilibookupdate.admin")) {
+                sender.sendMessage(ChatColor.RED + "权限不足");
                 return true;
-            } else {
-                getConfig().set("update", stack);
             }
+            ItemStack stack = player.getInventory().getItemInMainHand();
+            if (stack.getType() == Material.AIR) {
+                getConfig().set("update", null);
+            } else {
+                if (stack.getType() != Material.WRITTEN_BOOK) {
+                    sender.sendMessage(ChatColor.YELLOW + "无效物品，请手持成书来发布更新，或空手取消发布更新");
+                    return true;
+                } else {
+                    getConfig().set("update", stack);
+                }
+            }
+            getConfig().set("record", null);
+            saveConfig();
+            sender.sendMessage(ChatColor.GREEN + "更新已发布!");
+            Bukkit.getOnlinePlayers().forEach(p->showUpdate(p,false));
+            return true;
         }
-        getConfig().set("record", null);
-        saveConfig();
-        sender.sendMessage(ChatColor.GREEN + "更新已发布!");
-        Bukkit.getOnlinePlayers().forEach(this::showUpdate);
-        return true;
+        if(label.equalsIgnoreCase("changelog")){
+            showUpdate(player,true);
+            return true;
+        }
+        return false;
     }
+
 }
